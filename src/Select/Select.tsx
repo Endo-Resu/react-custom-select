@@ -1,33 +1,51 @@
 import {FC, useEffect, useState} from "react";
 import s from './Select.module.scss';
 
-type SelectOption = {
+export type SelectOption = {
     label: string;
     value: string | number;
 }
 
-type SelectProps = {
-    options: SelectOption[];
+type MultipleSelectProps = {
+    multiple: true;
+    value: SelectOption[];
+    onChange: (value: SelectOption[]) => void;
+}
+
+type SingleSelectProps = {
+    multiple?: false;
     value?: SelectOption;
     onChange: (value: SelectOption | undefined) => void;
 }
 
-const Select: FC<SelectProps> = ({options, value, onChange}) => {
+type SelectProps = {
+    options: SelectOption[];
+} & (SingleSelectProps | MultipleSelectProps)
+
+const Select: FC<SelectProps> = ({multiple, options, value, onChange}) => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const [highlightedIndex, setHighlightedIndex] = useState<number>(0);
 
     const clearOptions = () => {
-        onChange(undefined)
+        multiple ? onChange([]) : onChange(undefined)
     }
 
     const selectOption = (option: SelectOption) => {
-        if (option !== value) {
-            onChange(option)
+        if (multiple) {
+            if (value.includes(option)) {
+                onChange(value.filter(o => o !== option))
+            } else  {
+                onChange([...value, option])
+            }
+        } else  {
+            if (option !== value) {
+                onChange(option)
+            }
         }
     }
 
     const isOptionSelected = (option: SelectOption) => {
-        return option === value
+        return multiple ? value.includes(option) : option === value
     }
 
     useEffect(() => {
@@ -44,7 +62,25 @@ const Select: FC<SelectProps> = ({options, value, onChange}) => {
             onBlur={() => setIsOpen(false)}
         >
             <span className={s.value}>
-                {value?.label}
+                {multiple
+                    ?
+                    value.map(v => (
+                        <button
+                            key={v.value}
+                            onClick={e => {
+                                e.stopPropagation()
+                                selectOption(v)
+                            }}
+                            className={s.option_badge}
+                        >
+                            {v.label}
+                            <span className={s.remove}>
+                                &times;
+                            </span>
+                        </button>
+                    ))
+                    :
+                    value?.label}
             </span>
             <button
                 className={s.clear}

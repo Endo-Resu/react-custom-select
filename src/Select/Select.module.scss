@@ -18,6 +18,9 @@
 
 .value {
   flex-grow: 1;
+  display: flex;
+  gap: 0.5em;
+  flex-wrap: wrap;
 }
 
 .clear {
@@ -83,4 +86,32 @@
     background-color: hsl(200, 100%, 50%);
     color: #ffffff;
   }
+
+  &_badge {
+    display: flex;
+    align-items: center;
+    border: 0.05em solid #777777;
+    border-radius: 0.25em;
+    padding: 0.15em 0.25em;
+    gap: 0.25em;
+    cursor: pointer;
+    background-color: transparent;
+    outline: none;
+    transition: 0.3s ease-in-out;
+
+    &:focus, &:hover {
+      background-color: hsl(0, 100%, 90%);
+      border-color: hsl(0, 100%, 50%);
+    }
+
+    &:focus > .remove, &:hover > .remove {
+      color: hsl(0, 100%, 50%);
+    }
+  }
+}
+
+.remove {
+  font-size: 1.25em;
+  color: #777777;
+  transition: 0.3s ease-in-out;
 }
