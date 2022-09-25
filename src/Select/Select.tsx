@@ -1,4 +1,4 @@
-import {FC, useEffect, useState} from "react";
+import {FC, useEffect, useRef, useState} from "react";
 import s from './Select.module.scss';
 
 export type SelectOption = {
@@ -25,6 +25,7 @@ type SelectProps = {
 const Select: FC<SelectProps> = ({multiple, options, value, onChange}) => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const [highlightedIndex, setHighlightedIndex] = useState<number>(0);
+    const containerRef = useRef<HTMLDivElement>(null);
 
     const clearOptions = () => {
         multiple ? onChange([]) : onChange(undefined)
@@ -54,8 +55,47 @@ const Select: FC<SelectProps> = ({multiple, options, value, onChange}) => {
         }
     }, [isOpen])
 
+    useEffect(() => {
+        const handler = (e: KeyboardEvent) => {
+            if (e.target != containerRef.current) {
+                return
+            }
+            switch (e.code) {
+                case "Enter":
+                case "Space":
+                    setIsOpen(prevState => !prevState)
+                    if (isOpen) {
+                        selectOption(options[highlightedIndex])
+                    }
+                    break
+                case "ArrowUp":
+                case "ArrowDown": {
+                    if (!isOpen) {
+                        setIsOpen(true)
+                        break
+                    }
+
+                    const newValue = highlightedIndex + (e.code === "ArrowDown" ? 1 : -1)
+                    if (newValue >= 0 && newValue < options.length) {
+                        setHighlightedIndex(newValue)
+                    }
+                    break
+                }
+                case "Escape":
+                    setIsOpen(false)
+                    break
+            }
+        }
+        containerRef.current?.addEventListener('keydown', handler)
+
+        return () => {
+            containerRef.current?.removeEventListener('keydown', handler)
+        }
+    }, [isOpen, highlightedIndex, options])
+
     return (
         <div
+            ref={containerRef}
             className={s.container}
             tabIndex={0}
             onClick={() => setIsOpen(prevState => !prevState)}
